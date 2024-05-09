@@ -1,0 +1,520 @@
+---
+title: "Data Analysis - Logistics Dataset - Classification"
+output: pdf_document
+date: "December 09, 2022"
+author: "Amanpreet Kaur"
+---
+
+```{r setup, include=FALSE}
+##################################################
+### Basic Set Up                                ##
+##################################################
+
+# Clear plots
+if(!is.null(dev.list())) dev.off()
+
+# Clear console
+cat("\014") 
+
+# Clean workspace
+rm(list=ls())
+
+#Set work directory
+setwd("C:/Users/Amanpreet Kaur/OneDrive/Documents/Data Analytics - R/Assignment 5")
+
+
+##################################################
+### Install Libraries                           ##
+##################################################
+
+#If the library is not already downloaded, download it
+
+if(!require(lattice)){install.packages("lattice")}
+library("lattice")
+
+if(!require(HSAUR)){install.packages("HSAUR")}
+library("HSAUR")
+
+if(!require(pastecs)){install.packages("pastecs")}
+library("pastecs")
+
+if(!require(ggplot2)){install.packages("ggplot2")}
+library("ggplot2")
+
+if(!require(vcd)){install.packages("vcd")}
+library("vcd")
+
+if(!require(readxl)){install.packages("readxl")}
+library("readxl")
+
+if(!require(tinytex)){install.packages("tinytex")}
+library("tinytex")
+
+if(!require(dplyr)){install.packages("dplyr")}
+library("dplyr")
+
+if(!require(corrgram)){install.packages("corrgram")}
+library("corrgram")
+
+if(!require(MASS)){install.packages("MASS")}
+library("MASS")
+
+if(!require(partykit)){install.packages("partykit")}
+library("partykit")
+
+if(!require(klaR)){install.packages("klaR")}
+library("klaR")
+
+```
+################################################################################                                                                              
+###                                 PART A                                   ###                                                                              
+################################################################################
+
+################################################################################                                                                              
+###                  1. Preliminary Data Preparation                         ###                                                                              
+################################################################################
+```{r}
+
+#Reading the data set and modifying the variable names with initials
+Logistics_Dataset <- read.table("Data Analysis - Logistics Dataset.txt",
+                                       sep=",",
+                                       header = TRUE)
+
+Logistics_Dataset <- as.data.frame(Logistics_Dataset)
+colnames(Logistics_Dataset) <- paste(colnames(Logistics_Dataset),
+                                            "AK",
+                                            sep = "_")
+head(Logistics_Dataset)
+
+# Statistics for all the variables 
+stat.desc(Logistics_Dataset)
+
+#Converting the categorical variables to factor variables 
+Logistics_Dataset$Dom_AK <- as.factor(Logistics_Dataset$Dom_AK)
+Logistics_Dataset$Haz_AK <- as.factor(Logistics_Dataset$Haz_AK)
+Logistics_Dataset$Car_AK <- as.factor(Logistics_Dataset$Car_AK)
+
+histogram( ~ Dom_AK,
+          dat = Logistics_Dataset,
+          breaks=4,
+          col="slategray2",
+          type="count",
+          main="Distrubution of manufacturing type",
+          xlab = "Canadian VS International products")
+
+histogram( ~ Haz_AK,
+          dat = Logistics_Dataset,
+          breaks=4,
+          col="steelblue1",
+          type="count",
+          main="Distrubution of Hazardeous type",
+          xlab = "hazardous VS Non-hazardous")
+
+histogram( ~ Car_AK,
+          dat = Logistics_Dataset,
+          breaks=4,
+          col="lightskyblue",
+          type="count",
+          main="Distrubution of carrier service type",
+          xlab = "Fed Post VS M-Press Delivery")
+
+boxplot(Logistics_Dataset$Del_AK,
+        main="Time for delivery",
+        xlab="Time for delivery in days",
+        col = "lightseagreen",
+        border = "black",
+        horizontal = TRUE, 
+        pch=10,
+        range =2)
+
+boxplot(Logistics_Dataset$Vin_AK,
+        main="Vintage of product",
+        xlab="Vintage of product",
+        col = "turquoise4",
+        border = "black",
+        horizontal = TRUE, 
+        pch=10,
+        range =2)
+
+boxplot(Logistics_Dataset$Pkg_AK,
+        main="Number of packages",
+        xlab="How many packages of product have been ordered",
+        col = "midnightblue",
+        border = "black",
+        horizontal = TRUE, 
+        pch=10,
+        range =2)
+
+boxplot(Logistics_Dataset$Cst_AK,
+        main="Number of customer orders",
+        xlab="How many orders the customer has made in the past",
+        col = "skyblue",
+        border = "black",
+        horizontal = TRUE, 
+        pch=10,
+        range =2)
+
+boxplot(Logistics_Dataset$Mil_AK,
+        main="Number of Miles",
+        xlab="Distance the order needs to be delivered (in km)",
+        col = "navy",
+        border = "black",
+        horizontal = TRUE, 
+        pch=10,
+        range =2)
+
+densityplot(Logistics_Dataset$Mil_AK, pch = 10)
+
+#removing data points with Distance the order needs to be delivered (in km) is negative
+
+Logistics_Dataset <-  subset(Logistics_Dataset , Mil_AK >= 0) 
+###############################################################################
+#
+# 1. Dom : The domestic or international indicator for the product have two values
+#          and is a categorical data free from any outliers. 
+#
+# 2. Haz : The indicator representing if product is hazardous or not also have 
+#          two categories and is free from any outliers.
+#
+# 3. Car : The indicator representing carrier service of the product have
+#          two categories and is free from any outliers. 
+#
+# 4. Del : The delivery time has one outlier but it does not have high influence
+#          as the value seems high but normal for the dataset.
+#
+# 5. Vin : As per the box plot, there vintage time has 5 outliers which seems to 
+#          normal as there is no unusual value for the variable.
+#
+# 6. Pkg : The number of packages has 5 outliers with no high influence these outliers
+#          are normal.
+#
+# 7. Cst : As per the box plot, the number of orders the customer has made in the past
+#          has two outliers with no unusual values. 
+#
+# 8. Mil : As per the box plot, there are 4 outliers which seems to be normal,
+#          as the distance the orders needs to be delivered can be high than the
+#          regular data. However there seems to be few values less than 0.
+#          The distance can not be negative. 
+#
+#          As per the density plot, there are approximately 4 data points which 
+#          are below 0. 
+#          Hence, removing these records.
+#         
+#
+###############################################################################
+```
+
+################################################################################                                                                              
+###                  2. Exploratory Analysis                                 ###                                                                              
+################################################################################
+```{r}
+Logistics_Dataset$OT_AK <- as.numeric( as.factor( ifelse(Logistics_Dataset$Del_AK < 10.1, 1,0)))
+Logistics_Dataset$Dom_AK <- as.numeric(Logistics_Dataset$Dom_AK)
+Logistics_Dataset$Haz_AK <- as.numeric(Logistics_Dataset$Haz_AK)
+Logistics_Dataset$Car_AK <- as.numeric(Logistics_Dataset$Car_AK)
+
+
+# Removing the delivery column before checking the correlation with in the variables
+# as OT_AK column is computed based on the delivery
+Logistics_Dataset <- Logistics_Dataset[,-c(1)]
+str(Logistics_Dataset)
+
+#numerical correlation matrix
+round(cor(Logistics_Dataset, method="spearman"),2)
+
+#graphical correlation matrix
+corrgram(Logistics_Dataset, order=TRUE, lower.panel=panel.shade,
+         upper.panel=panel.pie, text.panel=panel.txt,
+         main="Correlations")
+
+
+
+chisq_AK <- chisq.test(Logistics_Dataset$OT_AK, Logistics_Dataset$Car_AK, correct=FALSE)
+chisq_AK 
+
+table_OT_Car <- table(Logistics_Dataset$OT_AK, Logistics_Dataset$Car_AK,
+                   dnn=list("On-Time delivery","Carrier Services"))
+table_OT_Car
+#Vertical Bar Chart
+barplot(prop.table(table_OT_Car,2),
+                   xlab='On-Time Delivery',
+                   ylab='Pct',
+                   main="Delivery by carrier service",
+                   col=c("cadetblue1","cadetblue4"),
+                   legend=rownames(table_OT_Car),
+                   args.legend = list(x = "topleft"))
+
+
+###############################################################################
+# 1. Numerical Correlation:
+#
+#    The mod of correlation between On-Time Delivery and Mil i.e. distance in 
+#    kms is approximately 0.68 which represents that there is moderate linear
+#    correlation between these two variables.
+#    Also, there is a weak linear relation between On-Time Delivery and Carrier
+#    Services with correlation of 0.27.
+#
+#    The delivery time variable is removed from the data set to avoid co-linear
+#    variables in the data set, as the new variable i.e. On-Time Delivery is 
+#    derived from the delivery variable. 
+#
+#    We can also depict the same about the variables mentioned above from the 
+#    graphical representation of the correlation matrix.
+#
+# 2. Identifying the most significant predictor for On-Time Delivery:
+#    
+#    We have performed Chi-Squared test to check if there is any relationship 
+#    between the Carrier services and On-time delivery as both are categorical
+#    variables. 
+#    After observing the p-value (p-value < 2.2e-16) we can say that there is 
+#    statistical evidence that there is a relationship between both the
+#    variables.
+#
+###############################################################################
+
+```
+
+################################################################################                                                                              
+###                     3. Model Development                                 ###                                                                              
+################################################################################
+
+```{r}
+
+Logistics_Dataset$OT_AK <-  as.factor(Logistics_Dataset$OT_AK)
+Logistics_Dataset$Dom_AK <- as.factor(Logistics_Dataset$Dom_AK)
+Logistics_Dataset$Haz_AK <- as.factor(Logistics_Dataset$Haz_AK)
+Logistics_Dataset$Car_AK <- as.factor(Logistics_Dataset$Car_AK)
+
+str(Logistics_Dataset)
+
+#full model
+glm.fit <- glm(OT_AK ~ . , data=Logistics_Dataset, family='binomial')
+summary(glm.fit)
+
+#backward model
+step.fit <- step(glm.fit,direction = "backward", trace = 0) 
+summary(step.fit)
+
+###############################################################################
+# Interpretation:
+# 
+# (1) AIC:
+#
+#     AIC for Full model is 4121.9 and AIC for backward model is 4121.3, 
+#     which means there is no significant difference based on the AIC. 
+#     However as we consider lower AIC value as better, therefore backward
+#     is better.
+#
+# (2) Deviance: 
+#     
+#     The difference between null and residual deviance is 4555 for 
+#     full model and 4553.6 for backward model. As the difference is 
+#     more for the full model, full model is better.
+#
+# (3) Residual symmetry: 
+#
+#     The residuals for both the models seems quite symmetrical
+#     Therefore, both models are good in this case.
+#
+# (4) z-values: 
+#
+#     For the full model, two variables are not statistically significant
+#     i.e. , vintage and number of packages. 
+#     The other variable and intercept is statistically significant as
+#     the p-value is less than 0.05.
+#
+#     For the backward model, there is one variable which is not
+#     statistically significant and other variables are as their p-value
+#     is less than 0.05.
+#
+#     After comparing both, backward model has less number of variables 
+#     and less number of variable which are not statistically significant
+#     therefore, backward model is better in this case.
+#
+# (5) Parameter Co-Efficient: 
+#     
+#     The parameter coefficients for both the models are quite same.
+#                             
+# 
+#  Conclusion: 
+#
+#     Overall, the backward model is slightly better than the full model,
+#     as there are less number of variable and better based on the main
+#     measures interpreted above.
+#
+###############################################################################
+```
+################################################################################                                                                              
+###                                 PART B                                   ###                                                                              
+################################################################################
+
+################################################################################                                                                              
+###                  1. Logistic Regression – Backward                       ###                                                                              
+################################################################################
+```{r}
+
+#Logistic Regression – Backward
+starttime <- Sys.time()
+step.fit_LR_AK <- step(glm.fit, direction = "backward", trace = 0)
+endtime <- Sys.time()
+timetaken_M1 <- endtime - starttime
+summary(step.fit_LR_AK)
+timetaken_M1
+
+responseM1 <- predict(step.fit_LR_AK, type = "response")
+head(responseM1,10)
+classM1 <- ifelse(responseM1>0.5,2,1)
+head(classM1)
+CM1 <- table( Logistics_Dataset$OT_AK, classM1, dnn=list("Actual","Predicted"))
+CM1
+
+```
+
+################################################################################                                                                              
+###                  2. Naive-Bayes Classification                           ###                                                                              
+################################################################################
+```{r warning=FALSE}
+
+#Naive-Bayes Classification
+starttime <- Sys.time()
+NaiveBayes_AK <- NaiveBayes(OT_AK ~ . , data = Logistics_Dataset, na.action = na.omit)
+endtime <- Sys.time()
+timetaken_M2 <- endtime - starttime
+summary(NaiveBayes_AK)
+timetaken_M2
+
+responseM2 <- predict( NaiveBayes_AK, Logistics_Dataset )
+CM2 <- table( Logistics_Dataset$OT_AK, Predicted = responseM2$class, dnn=list("Actual","Predicted"))
+CM2
+
+```
+################################################################################                                                                              
+###                  3. Linear Discriminant Analysis                         ###                                                                              
+################################################################################
+```{r}
+
+#Linear Discriminant Analysis
+start_time <- Sys.time()
+LDA_AK <- lda(OT_AK ~ . , data = Logistics_Dataset , na.action=na.omit)  
+end_time <- Sys.time()
+timetaken_M3 <- end_time - start_time
+summary(step.fit_LR_AK)
+timetaken_M3
+
+responseM3<- predict(LDA_AK,Logistics_Dataset)
+CM3 <- table (Actual=Logistics_Dataset$OT_AK, Predicted=responseM3$class) 
+CM3
+
+```
+################################################################################                                                                              
+###                  4. Decision Tree                                        ###                                                                              
+################################################################################
+```{r}
+
+start_time <- Sys.time()
+tree.fit_AK <- ctree(OT_AK ~ . , data=Logistics_Dataset)
+end_time <- Sys.time()
+
+timetaken_M4 <- end_time - start_time
+timetaken_M4
+
+plot(tree.fit_AK, gp=gpar(fontsize=5))
+responseM4 <- predict(tree.fit_AK, Logistics_Dataset)
+CM4 <- table(Actual=Logistics_Dataset$OT_AK, Predicted=responseM4)
+CM4
+
+```
+################################################################################                                                                              
+###                  5. Compare All Classifiers                              ###                                                                              
+################################################################################
+```{r}
+
+# Calculating accuracy for Logistic Regression – Backward classifier
+TP_M1<- CM1[2,2]
+TN_M1<- CM1[1,1]
+AccuracyM1 <- (TP_M1+TN_M1)/sum(CM1)
+
+# Calculating accuracy for Naive-Bayes Classification classifier
+TP_M2<- CM2[2,2]
+TN_M2<- CM2[1,1]
+AccuracyM2 <- (TP_M2+TN_M2)/sum(CM2)
+
+# Calculating accuracy for Linear Discriminant Analysis classifier
+TP_M3<- CM3[2,2]
+TN_M3<- CM3[1,1]
+AccuracyM3 <- (TP_M3+TN_M3)/sum(CM3)
+
+# Calculating accuracy for Decision Tree classifier
+TP_M4<- CM4[2,2]
+TN_M4<- CM4[1,1]
+AccuracyM4 <- (TP_M4+TN_M4)/sum(CM4)
+
+AccuracyM1
+AccuracyM2
+AccuracyM3
+AccuracyM4
+
+#Time taken for Logistic Regression – Backward classifier
+timetaken_M1
+
+#Time taken for Naive-Bayes Classification classifier
+timetaken_M2
+
+#Time taken for Linear Discriminant Analysis classifier
+timetaken_M3
+
+#Time taken for Decision Tree classifier
+timetaken_M4
+
+# Extracting values for false postives for all classifiers to a variable
+FP_M1<- CM1[1,2]
+FP_M2<- CM2[1,2]
+FP_M3<- CM3[1,2]
+FP_M4<- CM4[1,2]
+
+#False positives for Logistic Regression – Backward classifier
+FP_M1
+
+#False positives for Naive-Bayes Classification classifier
+FP_M2
+
+#False positives for Linear Discriminant Analysis classifier
+FP_M3
+
+#False positives for Decision Tree classifier
+FP_M4
+
+################################################################################
+# Overall comparison of classifiers:
+#
+# 1. Accuracy: 
+#
+#    The decision tree classifier has the highest accuracy as compared to 
+#    other models. The Linear Discriminant Analysis classifier has a slightly low
+#    accuracy. Naive-Bayes Classification have the least 
+#    accuracy.
+#
+# 2. Processing Speed:
+#
+#    In case the processing speed is a priority, the Naive-Bayes
+#    Classification is the best with least processing speed.
+#
+# 3. Minimize false positives:
+#
+#    To minimize false positive, the decision tree classifier have the least 
+#    false positives with value of 403.
+#
+# 4. Best model overall:
+#    
+#    To conclude the best model overall, it is necessary to consider the main 
+#    requirements.
+#
+#    If the accuracy and minimizing false positives is our top 
+#    priority then decision tree classifier is the best. However, if we need
+#    the classification to be fast and processing speed is our priority
+#    then decision tree classifier is slower than Naive Bayes.
+#    Else, if fast processing is the requirement then  Naive Bayer classifier
+#    is fastest. Naive Bayes have the least accuracy and more number of false positives.
+#
+################################################################################
+```
