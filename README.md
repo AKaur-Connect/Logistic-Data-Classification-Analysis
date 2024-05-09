@@ -1,5 +1,3 @@
-# Logistic-Data-Classification-Analysis
-
 ## Data Analysis - Logistics Dataset - Classification
 
 Author: Amanpreet Kaur
